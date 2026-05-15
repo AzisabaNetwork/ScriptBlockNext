@@ -22,6 +22,8 @@ class ScriptBlockNext : JavaPlugin() {
     }
 
     override fun onEnable() {
+        instance = this
+
         MessageManager.init(this)
 
         DiscordSRVManager.init(this)
