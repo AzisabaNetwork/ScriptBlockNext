@@ -33,16 +33,6 @@ dependencies {
     compileOnly("com.discordsrv:discordsrv:1.29.0")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 }
-
-tasks {
-    runServer {
-        // Configure the Minecraft version for our task.
-        // This is the only required configuration besides applying the plugin.
-        // Your plugin's jar (or shadowJar if present) will be used automatically.
-        minecraftVersion("1.13")
-    }
-}
-
 val targetJavaVersion = 8
 kotlin {
     jvmToolchain(targetJavaVersion)
@@ -59,16 +49,4 @@ tasks.processResources {
     filesMatching("plugin.yml") {
         expand(props)
     }
-}
-
-// ローカルサーバに自動コピー用
-// 必要に応じて、ブロックを削除またはパスを変更してください
-tasks.register<Copy>("copyJarToPlugins") {
-    dependsOn("shadowJar")
-    from(tasks.named("shadowJar"))
-    into("C:\\Users\\user\\Desktop\\server\\plugins")
-}
-
-tasks.build {
-    finalizedBy("copyJarToPlugins")
 }
