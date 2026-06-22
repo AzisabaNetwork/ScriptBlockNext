@@ -1,5 +1,5 @@
 name: ScriptBlockNext
-version: '1.0-SNAPSHOT'
+version: ${version}'
 main: com.github.albardoo02.scriptBlockNext.ScriptBlockNext
 description: ScriptBlockPlusを改良したヤツ
 author: albardoo02
