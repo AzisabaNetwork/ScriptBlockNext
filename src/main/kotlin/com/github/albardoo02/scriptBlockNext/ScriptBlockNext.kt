@@ -10,7 +10,6 @@ import com.github.albardoo02.scriptBlockNext.manager.MessageManager
 import com.github.albardoo02.scriptBlockNext.hook.PlaceholderManager
 import com.github.albardoo02.scriptBlockNext.hook.VaultManager
 import com.github.albardoo02.scriptBlockNext.manager.ScriptManager
-import net.milkbowl.vault.economy.Economy
 import org.bukkit.plugin.java.JavaPlugin
 import java.io.File
 
