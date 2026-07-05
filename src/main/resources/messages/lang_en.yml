@@ -9,6 +9,8 @@ error_cooldown: "&cYou are on cooldown (Remaining: {time}s)"
 error_look_at_block: "&cPlease look at a block."
 error_no_script_info: "&cNo {type} script is set on this block."
 error_selection_incomplete: "&cError: Selection is incomplete. Set Pos1 and Pos2 with the tool."
+error_amount_limit: "&cYou have reached the execution limit ({limit} times) for this script."
+error_global_amount_limit: "&cThis script has reached the global execution limit ({limit} times)."
 
 # Command Usage
 cmd_usage_main: "&cUsage: /sbn <type> <action> [args] or /sbn reload"
@@ -38,6 +40,7 @@ info_creator: "&7Creator: &b{creator}"
 info_commands_header: "&7Commands:"
 info_command_line: "&8[&7{index}&8] &f{command}"
 info_footer: "&e=========================="
+info_show_start: "&aShowing locations of {type} scripts with particles for 10 seconds (Total: {count})."
 
 # Clipboard & Paste
 error_empty_clipboard: "&cError: Clipboard is empty. Copy a script first using /sbn <type> copy."

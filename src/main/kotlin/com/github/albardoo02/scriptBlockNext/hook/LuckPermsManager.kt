@@ -37,4 +37,15 @@ object LuckPermsManager {
         } catch (e: Exception) {
         }
     }
+
+    fun hasGroup(player: Player, group: String): Boolean {
+        if (!isHooked) return false
+        try {
+            val api = LuckPermsProvider.get()
+            val user = api.userManager.getUser(player.uniqueId) ?: return false
+            return user.getNodes().stream().anyMatch { it is InheritanceNode && it.groupName.equals(group, ignoreCase = true) }
+        } catch (e: Exception) {
+            return false
+        }
+    }
 }

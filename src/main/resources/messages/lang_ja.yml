@@ -9,6 +9,8 @@ error_cooldown: "&cクールダウン中です(残り:{time}秒)"
 error_look_at_block: "&c視点をブロックに合わせて下さい。"
 error_no_script_info: "&cこのブロックに{type}のスクリプトは設定されていません。"
 error_selection_incomplete: "&cエラー: 範囲が正しく選択されていません。ツールでPos1とPos2を設定してください。"
+error_amount_limit: "&cこのスクリプトは実行上限({limit}回)に達しています。"
+error_global_amount_limit: "&cこのスクリプトはサーバー全体での実行上限({limit}回)に達しています。"
 
 # コマンドの使い方
 cmd_usage_main: "&c使用方法: /sbn <type> <action> [args] または /sbn reload"
@@ -38,6 +40,7 @@ info_creator: "&7登録者: &b{creator}"
 info_commands_header: "&7コマンド一覧:"
 info_command_line: "&8[&7{index}&8] &f{command}"
 info_footer: "&e=========================="
+info_show_start: "&a{type} のスクリプト位置を10秒間パーティクルで表示します (計{count}個)。"
 
 # クリップボード・ペースト
 error_empty_clipboard: "&cエラー: クリップボードが空です。先に /sbn <type> copy でスクリプトをコピーしてください。"

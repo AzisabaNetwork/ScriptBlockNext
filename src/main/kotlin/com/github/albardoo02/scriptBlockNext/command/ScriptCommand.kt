@@ -246,6 +246,27 @@ class ScriptCommand: CommandExecutor, TabCompleter {
                 ScriptManager.addMode.remove(sender.uniqueId)
                 sender.sendMsg("mode_removal", "type" to type)
             }
+            "show" -> {
+                val world = sender.world
+                val scriptsInWorld = ScriptManager.scripts[type]?.filter { it.key.world == world.name }
+                if (scriptsInWorld.isNullOrEmpty()) {
+                    sender.sendMsg("error_no_script_info", "type" to type)
+                    return true
+                }
+                sender.sendMsg("info_show_start", "type" to type, "count" to scriptsInWorld.size.toString())
+                var ticks = 0
+                val taskId = Bukkit.getScheduler().runTaskTimer(ScriptBlockNext.instance, Runnable {
+                    if (ticks > 200) return@Runnable // 10 seconds
+                    for ((locData, _) in scriptsInWorld) {
+                        val loc = org.bukkit.Location(world, locData.x + 0.5, locData.y + 0.5, locData.z + 0.5)
+                        world.spawnParticle(org.bukkit.Particle.VILLAGER_HAPPY, loc, 3, 0.3, 0.3, 0.3, 0.0)
+                    }
+                    ticks += 10
+                }, 0L, 10L).taskId
+                Bukkit.getScheduler().runTaskLater(ScriptBlockNext.instance, Runnable {
+                    Bukkit.getScheduler().cancelTask(taskId)
+                }, 205L)
+            }
             else -> sender.sendMsg("error_unknown_action", "action" to action)
         }
         return true
@@ -283,7 +304,7 @@ class ScriptCommand: CommandExecutor, TabCompleter {
 
         if (args.size == 2 && first in listOf("interact", "break", "walk", "hit")) {
             if (!sender.hasPermission("scriptblocknext.command.$first")) return emptyList()
-            return listOf("create", "add", "remove", "view", "info", "copy").filter { it.startsWith(args[1], ignoreCase = true) }
+            return listOf("create", "add", "remove", "view", "info", "copy", "show").filter { it.startsWith(args[1], ignoreCase = true) }
         }
 
         if (args.size >= 3 && first in listOf("interact", "break", "walk", "hit")) {
@@ -323,7 +344,8 @@ class ScriptCommand: CommandExecutor, TabCompleter {
                 "[@oldCooldown:", $$"[$item:", "[@command ", "[@msg ", "@message ", "[@player ",
                 "[@server ", "[@console ", "[@bypass ", "[@sound:", "[@title:", "[@actionBar:",
                 "[@velocity:", "[@checkpoint]", "[@return]", "[@noFall:", "[@potion:",
-                "[@if ", "[@hand:", "[@bypassPerm:"
+                "[@if ", "[@hand:", "[@bypassPerm:", "[@perm:", "[@amount:", "[@globalAmount:",
+                "[@cancelEvent:true]", "[@cancelEvent:false]"
             )
 
             if (VaultManager.isHooked) {

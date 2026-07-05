@@ -67,7 +67,14 @@ class InteractListener: Listener {
 
         if (player.isSneaking && (player.isOp || player.hasPermission("scriptblocknext.admin"))) return
 
-        event.isCancelled = true
+        val hasCancelFalse = scriptData.commands.any {
+            val cleanCmd = it.removePrefix("!")
+            cleanCmd.startsWith("@cancelEvent:false", ignoreCase = true)
+        }
+        if (!hasCancelFalse) {
+            event.isCancelled = true
+        }
+        
         ScriptExecutor.run(player, scriptData, location)
     }
 }

@@ -26,6 +26,8 @@ object ScriptExecutor {
 
     private val playerCooldowns = mutableMapOf<UUID, MutableMap<Location, Long>>()
     private val globalCooldowns = mutableMapOf<Location, Long>()
+    private val playerAmounts = mutableMapOf<UUID, MutableMap<Location, Int>>()
+    private val globalAmounts = mutableMapOf<Location, Int>()
 
     fun run(player: Player, scriptData: ScriptData, location: Location, actionType: String = "") {
         if (ScriptBlockNext.instance.config.getBoolean("output_script_log", false)) {
@@ -132,6 +134,28 @@ object ScriptExecutor {
                 val channelId = cleanCmd.substringAfter(":")
                 val isInChannel = DiscordSRVManager.getVoiceChannelId(player.uniqueId) == channelId
                 if (if (isInverted) isInChannel else !isInChannel) return
+            } else if (cleanCmd.startsWith("@perm:", ignoreCase = true)) {
+                val perm = cleanCmd.substringAfter(":")
+                val hasPerm = player.hasPermission(perm)
+                if (if (isInverted) hasPerm else !hasPerm) return
+            } else if (cleanCmd.startsWith("@group:", ignoreCase = true)) {
+                val group = cleanCmd.substringAfter(":")
+                val hasGroup = LuckPermsManager.hasGroup(player, group)
+                if (if (isInverted) hasGroup else !hasGroup) return
+            } else if (cleanCmd.startsWith("@amount:", ignoreCase = true)) {
+                val amountLimit = cleanCmd.substringAfter(":").toIntOrNull() ?: 0
+                val used = playerAmounts[player.uniqueId]?.get(location) ?: 0
+                if (used >= amountLimit) {
+                    player.sendMsg("error_amount_limit", "limit" to amountLimit.toString())
+                    return
+                }
+            } else if (cleanCmd.startsWith("@globalAmount:", ignoreCase = true)) {
+                val amountLimit = cleanCmd.substringAfter(":").toIntOrNull() ?: 0
+                val used = globalAmounts[location] ?: 0
+                if (used >= amountLimit) {
+                    player.sendMsg("error_global_amount_limit", "limit" to amountLimit.toString())
+                    return
+                }
             } else if (cleanCmd.startsWith("@if ")) {
                 val ifArgs = cleanCmd.substringAfter("@if ").split(" ", limit = 4)
                 if (ifArgs.size >= 3) {
@@ -185,6 +209,18 @@ object ScriptExecutor {
             MythicMobsManager.takeMythicItem(player, mythicId, amount)
         }
 
+        // Increment amounts
+        for (line in scriptData.commands) {
+            val cmd = PlaceholderManager.replace(player, line)
+            val cleanCmd = cmd.removePrefix("!")
+            if (cleanCmd.startsWith("@amount:", ignoreCase = true)) {
+                val map = playerAmounts.getOrPut(player.uniqueId) { mutableMapOf() }
+                map[location] = (map[location] ?: 0) + 1
+            } else if (cleanCmd.startsWith("@globalAmount:", ignoreCase = true)) {
+                globalAmounts[location] = (globalAmounts[location] ?: 0) + 1
+            }
+        }
+
         executeCommands(player, scriptData.commands, 0)
     }
 
@@ -202,6 +238,11 @@ object ScriptExecutor {
                 activeCmd.startsWith("@oldCooldown:") || activeCmd.startsWith("@action:") ||
                 activeCmd.startsWith("@blockType:") ||
                 activeCmd.startsWith("@hand:") ||
+                activeCmd.startsWith("@perm:", ignoreCase = true) ||
+                activeCmd.startsWith("@group:", ignoreCase = true) ||
+                activeCmd.startsWith("@amount:", ignoreCase = true) ||
+                activeCmd.startsWith("@globalAmount:", ignoreCase = true) ||
+                activeCmd.startsWith("@cancelEvent:", ignoreCase = true) ||
                 activeCmd.startsWith("@mmid:", ignoreCase = true) ||
                 activeCmd.startsWith("@dRole:", ignoreCase = true) || activeCmd.startsWith("@dChannel:", ignoreCase = true)) continue
             if (activeCmd.startsWith("@delay:")) {
