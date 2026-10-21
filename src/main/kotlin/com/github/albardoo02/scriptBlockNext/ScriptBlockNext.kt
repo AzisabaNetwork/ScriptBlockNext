@@ -50,12 +50,15 @@ class ScriptBlockNext : JavaPlugin() {
             it.tabCompleter = scriptCommand
         }
         ScriptManager.init(this)
+        com.github.albardoo02.scriptBlockNext.manager.ExecutionCounter.init(this)
         server.pluginManager.registerEvents(InteractListener(), this)
         server.pluginManager.registerEvents(ScriptListener(), this)
+        server.pluginManager.registerEvents(com.github.albardoo02.scriptBlockNext.listener.RedstoneListener(), this)
         logger.info("ScriptBlockNext has been enabled.")
     }
 
     override fun onDisable() {
+        com.github.albardoo02.scriptBlockNext.manager.ExecutionCounter.save()
         logger.info("ScriptBlockNext has been disabled.")
     }
 

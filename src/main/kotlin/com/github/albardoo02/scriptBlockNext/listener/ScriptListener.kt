@@ -20,7 +20,8 @@ class ScriptListener : Listener {
     fun onBreak(event: BlockBreakEvent) {
         val scriptData = ScriptManager.getScript(event.block.location, "break") ?: return
         val player = event.player
-        ScriptExecutor.run(player, scriptData, event.block.location)
+        if (ScriptExecutor.hasInvalid(scriptData)) event.isCancelled = true
+        ScriptExecutor.run(player, scriptData, event.block.location, if (player.isSneaking) setOf("shift") else emptySet())
     }
 
     @EventHandler
@@ -43,7 +44,8 @@ class ScriptListener : Listener {
         val lastExecuted = playerCooldowns[targetLoc] ?: 0L
         if (now - lastExecuted < 1000) return
         playerCooldowns[targetLoc] = now
-        ScriptExecutor.run(player, scriptData, targetLoc)
+        if (ScriptExecutor.hasInvalid(scriptData)) event.isCancelled = true
+        ScriptExecutor.run(player, scriptData, targetLoc, if (player.isSneaking) setOf("shift") else emptySet())
     }
 
     @EventHandler

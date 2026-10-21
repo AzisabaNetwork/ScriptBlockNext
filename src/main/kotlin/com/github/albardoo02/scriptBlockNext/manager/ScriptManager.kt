@@ -3,6 +3,7 @@ package com.github.albardoo02.scriptBlockNext.manager
 import com.github.albardoo02.scriptBlockNext.ScriptBlockNext
 import com.github.albardoo02.scriptBlockNext.data.BlockLocation
 import com.github.albardoo02.scriptBlockNext.data.ScriptData
+import com.github.albardoo02.scriptBlockNext.data.RedstoneSetting
 import com.github.albardoo02.scriptBlockNext.data.ScriptEntry
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
@@ -13,20 +14,20 @@ import org.bukkit.Location
 import org.bukkit.command.CommandSender
 import org.bukkit.configuration.file.YamlConfiguration
 import java.io.File
-import java.io.FileReader
-import java.io.FileWriter
 import java.util.UUID
 
 object ScriptManager {
 
     private lateinit var plugin: ScriptBlockNext
     private lateinit var scriptsFolder: File
-    private val gson: Gson = GsonBuilder().setPrettyPrinting().create()
+    private val gson: Gson = GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create()
 
     val scripts = mutableMapOf<String, MutableMap<BlockLocation, ScriptData>>()
     val creationMode = mutableMapOf<UUID, Pair<String, List<String>>>()
     val addMode = mutableMapOf<UUID, Pair<String, List<String>>>()
     val removalMode = mutableMapOf<UUID, String>()
+    val nametagMode = mutableMapOf<UUID, Pair<String, String?>>()
+    val redstoneMode = mutableMapOf<UUID, Pair<String, RedstoneSetting?>>()
     val checkpoints = mutableMapOf<UUID, Location>()
     val noFallPlayers = mutableMapOf<UUID, Long>()
 
@@ -60,6 +61,8 @@ object ScriptManager {
         saveScripts()
     }
 
+    fun getScript(blockLoc: BlockLocation, type: String): ScriptData? = scripts[type]?.get(blockLoc)
+
     fun removeAllScripts(location: Location) {
         val blockLoc = toBlockLoc(location)
         scripts.values.forEach { it.remove(blockLoc) }
@@ -77,7 +80,7 @@ object ScriptManager {
         for (file in jsonFiles) {
             val scriptType = file.nameWithoutExtension
             try {
-                FileReader(file).use { reader ->
+                file.reader(Charsets.UTF_8).use { reader ->
                     val jsonObject = gson.fromJson(reader, JsonObject::class.java) ?: return@use
                     for (worldEntry in jsonObject.entrySet()) {
                         val worldName = worldEntry.key
@@ -92,7 +95,7 @@ object ScriptManager {
                             val blockLoc = BlockLocation(worldName, x, y, z)
                             val entry = gson.fromJson(coordEntry.value, ScriptEntry::class.java)
                             val creator = entry.creator?.let { runCatching { UUID.fromString(it) }.getOrNull() }
-                            val data = ScriptData(entry.commands, scriptType, creator)
+                            val data = ScriptData(entry.commands, scriptType, creator, nametag = entry.nametag, redstone = entry.redstone)
                             scripts.getOrPut(scriptType) { mutableMapOf() }[blockLoc] = data
                         }
                     }
@@ -155,7 +158,7 @@ object ScriptManager {
                 if (!jsonFile.exists()) continue
 
                 try {
-                    FileReader(jsonFile).use { reader ->
+                    jsonFile.reader(Charsets.UTF_8).use { reader ->
                         val jsonArray = gson.fromJson(reader, JsonArray::class.java) ?: return@use
                         for (element in jsonArray) {
                             val obj = element.asJsonObject
@@ -213,26 +216,41 @@ object ScriptManager {
         }
     }
 
+    /** scripts フォルダを plugins/ScriptBlockNext/backups/<日時> へコピーする */
+    fun backup(): File? {
+        return try {
+            val stamp = java.text.SimpleDateFormat("yyyyMMdd_HHmmss").format(java.util.Date())
+            val dest = File(plugin.dataFolder, "backups/$stamp")
+            scriptsFolder.copyRecursively(dest, overwrite = true)
+            dest
+        } catch (e: Exception) {
+            plugin.logger.severe("Failed to backup scripts: ${e.message}")
+            null
+        }
+    }
+
     private fun saveScripts() {
+        // メインスレッドで書き込み内容を確定させ、非同期スレッドではファイル出力のみ行う
+        val snapshot = scripts.mapValues { (_, typeMap) ->
+            val worldMap = mutableMapOf<String, MutableMap<String, ScriptEntry>>()
+            for ((loc, data) in typeMap) {
+                val coordsStr = "${loc.x}, ${loc.y}, ${loc.z}"
+                worldMap.getOrPut(loc.world) { mutableMapOf() }[coordsStr] =
+                    ScriptEntry(data.commands.toList(), data.creator?.toString(), data.nametag, data.redstone)
+            }
+            worldMap
+        }
         plugin.server.scheduler.runTaskAsynchronously(plugin, Runnable {
-            try {
-                for ((type, typeMap) in scripts) {
-                    val worldMap = mutableMapOf<String, MutableMap<String, ScriptEntry>>()
-                    for ((loc, data) in typeMap) {
-                        val coordsStr = "${loc.x}, ${loc.y}, ${loc.z}"
-                        val entry = ScriptEntry(
-                            commands = data.commands,
-                            creator = data.creator?.toString()
-                        )
-                        worldMap.getOrPut(loc.world) { mutableMapOf() }[coordsStr] = entry
+            synchronized(this) {
+                try {
+                    for ((type, worldMap) in snapshot) {
+                        File(scriptsFolder, "$type.json").writer(Charsets.UTF_8).use { writer ->
+                            gson.toJson(worldMap, writer)
+                        }
                     }
-                    val file = File(scriptsFolder, "$type.json")
-                    FileWriter(file).use { writer ->
-                        gson.toJson(worldMap, writer)
-                    }
+                } catch (e: Exception) {
+                    plugin.logger.severe("Failed to save scripts: ${e.message}")
                 }
-            } catch (e: Exception) {
-                plugin.logger.severe("Failed to save scripts: ${e.message}")
             }
         })
     }

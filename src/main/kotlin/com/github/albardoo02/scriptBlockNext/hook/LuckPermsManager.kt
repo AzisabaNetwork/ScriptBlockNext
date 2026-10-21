@@ -38,6 +38,21 @@ object LuckPermsManager {
         }
     }
 
+    fun addPermission(player: Player, permission: String) = modifyPermission(player, permission, true)
+
+    fun removePermission(player: Player, permission: String) = modifyPermission(player, permission, false)
+
+    private fun modifyPermission(player: Player, permission: String, add: Boolean) {
+        try {
+            val api = LuckPermsProvider.get()
+            val user = api.userManager.getUser(player.uniqueId) ?: return
+            val node = net.luckperms.api.node.types.PermissionNode.builder(permission).build()
+            if (add) user.data().add(node) else user.data().remove(node)
+            api.userManager.saveUser(user)
+        } catch (e: Exception) {
+        }
+    }
+
     fun hasGroup(player: Player, group: String): Boolean {
         if (!isHooked) return false
         try {

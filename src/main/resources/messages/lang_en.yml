@@ -13,7 +13,7 @@ error_amount_limit: "&cYou have reached the execution limit ({limit} times) for 
 error_global_amount_limit: "&cThis script has reached the global execution limit ({limit} times)."
 
 # Command Usage
-cmd_usage_main: "&cUsage: /sbn <type> <action> [args] or /sbn reload"
+cmd_usage_main: "&cUsage: /sbn <type> <action> [args], /sbn reload, tool, selector, backup, datamigr"
 cmd_usage_action: "&cUsage: /sbn <interact|break|walk|hit> <create|add|remove|view>"
 cmd_usage_args: "&cUsage: /sbn {type} {action} <command>"
 cmd_usage_selector: "&cUsage: /sbn selector <remove|paste>"
@@ -51,3 +51,18 @@ success_pasted: "&aPasted the {type} script to {count} blocks in the selection"
 error_migration_not_found: "&cScriptBlockPlus folder was not found."
 error_migration_no_data: "&cNo valid data found to migrate."
 success_migration: "&aMigration from ScriptBlockPlus completed successfully ({count} scripts)"
+# Backup & Run
+success_backup: "&aScript data backed up to: {path}"
+error_backup_failed: "&cBackup failed. Check the console."
+cmd_usage_run: "&cUsage: /sbn {type} run [player] <world> <x> <y> <z>"
+error_player_not_found: "&cPlayer not found: {player}"
+
+# Nametag & Redstone
+mode_nametag: "&eNametag mode ({type}) enabled. Right-click the target block."
+mode_redstone: "&eRedstone mode ({type}) enabled. Right-click the target block."
+success_nametag_set: "&aNametag set: {nametag}"
+success_nametag_cleared: "&cNametag removed."
+success_redstone_on: "&aRedstone trigger enabled (selector: {selector})"
+success_redstone_off: "&cRedstone trigger disabled."
+info_nametag: "&7Nametag: &b{nametag}"
+info_redstone: "&7Redstone: &b{selector}"

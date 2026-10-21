@@ -51,3 +51,18 @@ success_pasted: "&a選択範囲内の {count} 個のブロックに {type} の�
 error_migration_not_found: "&cScriptBlockPlusのフォルダが見つかりませんでした。"
 error_migration_no_data: "&c移行可能なデータが見つかりませんでした。"
 success_migration: "&aScriptBlockPlusからの移行が完了しました ({count}個のスクリプト)"
+# バックアップ・実行
+success_backup: "&aスクリプトデータをバックアップしました: {path}"
+error_backup_failed: "&cバックアップに失敗しました。コンソールを確認してください。"
+cmd_usage_run: "&c使用方法: /sbn {type} run [プレイヤー] <ワールド> <x> <y> <z>"
+error_player_not_found: "&cプレイヤーが見つかりません: {player}"
+
+# ネームタグ・レッドストーン
+mode_nametag: "&eネームタグ設定モード({type})を有効にしました。対象のブロックを右クリックしてください。"
+mode_redstone: "&eレッドストーン設定モード({type})を有効にしました。対象のブロックを右クリックしてください。"
+success_nametag_set: "&aネームタグを設定しました: {nametag}"
+success_nametag_cleared: "&cネームタグを削除しました。"
+success_redstone_on: "&aレッドストーン起動を有効にしました (セレクター: {selector})"
+success_redstone_off: "&cレッドストーン起動を無効にしました。"
+info_nametag: "&7ネームタグ: &b{nametag}"
+info_redstone: "&7レッドストーン: &b{selector}"

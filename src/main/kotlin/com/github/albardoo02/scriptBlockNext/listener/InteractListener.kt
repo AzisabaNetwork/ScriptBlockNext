@@ -62,19 +62,41 @@ class InteractListener: Listener {
             event.isCancelled = true
             return
         }
+        ScriptManager.nametagMode.remove(player.uniqueId)?.let { (type, tag) ->
+            val data = ScriptManager.getScript(location, type)
+            if (data == null) {
+                player.sendMsg("error_no_script_info", "type" to type)
+            } else {
+                ScriptManager.addScript(location, data.copy(nametag = tag))
+                player.sendMsg(if (tag == null) "success_nametag_cleared" else "success_nametag_set", "type" to type, "nametag" to (tag ?: ""))
+            }
+            event.isCancelled = true
+            return
+        }
+
+        ScriptManager.redstoneMode.remove(player.uniqueId)?.let { (type, setting) ->
+            val data = ScriptManager.getScript(location, type)
+            if (data == null) {
+                player.sendMsg("error_no_script_info", "type" to type)
+            } else {
+                ScriptManager.addScript(location, data.copy(redstone = setting))
+                player.sendMsg(if (setting == null) "success_redstone_off" else "success_redstone_on", "type" to type, "selector" to (setting?.selector ?: ""))
+            }
+            event.isCancelled = true
+            return
+        }
+
         if (event.action != Action.RIGHT_CLICK_BLOCK && event.action != Action.LEFT_CLICK_BLOCK) return
         val scriptData = ScriptManager.getScript(location, "interact") ?: return
 
         if (player.isSneaking && (player.isOp || player.hasPermission("scriptblocknext.admin"))) return
 
-        val hasCancelFalse = scriptData.commands.any {
-            val cleanCmd = it.removePrefix("!")
-            cleanCmd.startsWith("@cancelEvent:false", ignoreCase = true)
-        }
-        if (!hasCancelFalse) {
+        if (!ScriptExecutor.isCancelEventDisabled(scriptData)) {
             event.isCancelled = true
         }
-        
-        ScriptExecutor.run(player, scriptData, location)
+
+        val actions = mutableSetOf(if (event.action == Action.LEFT_CLICK_BLOCK) "left" else "right")
+        if (player.isSneaking) actions.add("shift")
+        ScriptExecutor.run(player, scriptData, location, actions)
     }
 }

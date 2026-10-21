@@ -1,5 +1,5 @@
 name: ScriptBlockNext
-version: ${version}'
+version: ${version}
 main: com.github.albardoo02.scriptBlockNext.ScriptBlockNext
 description: ScriptBlockPlusを改良したヤツ
 author: albardoo02
@@ -40,6 +40,8 @@ permissions:
       scriptblocknext.command.hit: true
       scriptblocknext.command.tool: true
       scriptblocknext.command.selector: true
+      scriptblocknext.command.backup: true
+      scriptblocknext.command.datamigr: true
   scriptblocknext.command.reload:
     description: Allows reloading the plugin.
     default: op
@@ -68,4 +70,10 @@ permissions:
       scriptblocknext.tool.blockselector: true
   scriptblocknext.tool.blockselector:
     description: Allows using the Block Selector tool (Blaze Rod).
+    default: op
+  scriptblocknext.command.backup:
+    description: Allows backing up script data.
+    default: op
+  scriptblocknext.command.datamigr:
+    description: Allows migrating data from ScriptBlockPlus.
     default: op

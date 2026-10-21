@@ -1,5 +1,7 @@
 package com.github.albardoo02.scriptBlockNext.command
 
+import com.github.albardoo02.scriptBlockNext.executor.ScriptExecutor
+import com.github.albardoo02.scriptBlockNext.executor.ScriptParser
 import com.github.albardoo02.scriptBlockNext.hook.MythicMobsManager
 import com.github.albardoo02.scriptBlockNext.hook.LuckPermsManager
 import com.github.albardoo02.scriptBlockNext.manager.ScriptManager
@@ -35,9 +37,48 @@ class ScriptCommand: CommandExecutor, TabCompleter {
         }
     }
 
+    private val scriptTypes = listOf("interact", "break", "walk", "hit")
+
+    /** /sbn <type> run [player] <world> <x> <y> <z> */
+    private fun runScript(sender: CommandSender, args: Array<out String>): Boolean {
+        val type = args[0].lowercase()
+        if (!sender.hasPermission("scriptblocknext.command.$type")) {
+            sender.sendMsg("error_no_permission")
+            return true
+        }
+        val rest = args.drop(2)
+        val hasPlayerArg = rest.size >= 5
+        if (rest.size < 4) {
+            sender.sendMsg("cmd_usage_run", "type" to type)
+            return true
+        }
+        val target: Player? = if (hasPlayerArg) Bukkit.getPlayerExact(rest[0]) else sender as? Player
+        if (target == null) {
+            sender.sendMsg(if (hasPlayerArg) "error_player_not_found" else "error_only_player", "player" to rest.getOrElse(0) { "" })
+            return true
+        }
+        val coords = if (hasPlayerArg) rest.drop(1) else rest
+        val world = Bukkit.getWorld(coords[0])
+        val x = coords[1].toIntOrNull()
+        val y = coords[2].toIntOrNull()
+        val z = coords[3].toIntOrNull()
+        if (world == null || x == null || y == null || z == null) {
+            sender.sendMsg("cmd_usage_run", "type" to type)
+            return true
+        }
+        val loc = org.bukkit.Location(world, x.toDouble(), y.toDouble(), z.toDouble())
+        val data = ScriptManager.getScript(loc, type)
+        if (data == null) {
+            sender.sendMsg("error_no_script_info", "type" to type)
+            return true
+        }
+        ScriptExecutor.run(target, data, loc)
+        return true
+    }
+
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
         if (args.isEmpty()) {
-            if (sender is Player) sender.sendMsg("cmd_usage_main")
+            sender.sendMsg("cmd_usage_main")
             return true
         }
 
@@ -51,6 +92,29 @@ class ScriptCommand: CommandExecutor, TabCompleter {
             ScriptManager.loadScripts()
             sender.sendMsg("cmd_reloaded")
             return true
+        }
+
+        if (firstArg == "backup") {
+            if (!sender.hasPermission("scriptblocknext.command.backup")) {
+                sender.sendMsg("error_no_permission")
+                return true
+            }
+            val dest = ScriptManager.backup()
+            if (dest != null) sender.sendMsg("success_backup", "path" to dest.path) else sender.sendMsg("error_backup_failed")
+            return true
+        }
+
+        if (firstArg == "datamigr") {
+            if (!sender.hasPermission("scriptblocknext.command.datamigr")) {
+                sender.sendMsg("error_no_permission")
+                return true
+            }
+            ScriptManager.migrateFromScriptBlockPlus(sender)
+            return true
+        }
+
+        if (args.size >= 2 && args[1].lowercase() == "run" && args[0].lowercase() in scriptTypes) {
+            return runScript(sender, args)
         }
 
         if (sender !is Player) {
@@ -223,10 +287,11 @@ class ScriptCommand: CommandExecutor, TabCompleter {
                     sender.sendMsg("cmd_usage_args", "type" to type, "action" to action)
                     return true
                 }
-                val cmdString = args.drop(2).joinToString(" ")
-                val regex = Regex("\\[(.*?)\\]")
-                val matches = regex.findAll(cmdString)
-                val commands = matches.map { it.groupValues[1] }.toList().ifEmpty { listOf(cmdString) }
+                val commands = ScriptParser.split(args.drop(2).joinToString(" "))
+                if (commands.isEmpty()) {
+                    sender.sendMsg("cmd_usage_args", "type" to type, "action" to action)
+                    return true
+                }
 
                 if (action == "create") {
                     ScriptManager.creationMode[sender.uniqueId] = type to commands
@@ -285,6 +350,7 @@ class ScriptCommand: CommandExecutor, TabCompleter {
             if (sender.hasPermission("scriptblocknext.command.tool")) firstArgs.add("tool")
             if (sender.hasPermission("scriptblocknext.command.selector")) firstArgs.add("selector")
             if (sender.hasPermission("scriptblocknext.command.datamigr")) firstArgs.add("datamigr")
+            if (sender.hasPermission("scriptblocknext.command.backup")) firstArgs.add("backup")
             return firstArgs.filter { it.startsWith(args[0], ignoreCase = true) }
         }
 
@@ -304,7 +370,7 @@ class ScriptCommand: CommandExecutor, TabCompleter {
 
         if (args.size == 2 && first in listOf("interact", "break", "walk", "hit")) {
             if (!sender.hasPermission("scriptblocknext.command.$first")) return emptyList()
-            return listOf("create", "add", "remove", "view", "info", "copy", "show").filter { it.startsWith(args[1], ignoreCase = true) }
+            return listOf("create", "add", "remove", "view", "info", "copy", "show", "run").filter { it.startsWith(args[1], ignoreCase = true) }
         }
 
         if (args.size >= 3 && first in listOf("interact", "break", "walk", "hit")) {
@@ -345,7 +411,8 @@ class ScriptCommand: CommandExecutor, TabCompleter {
                 "[@server ", "[@console ", "[@bypass ", "[@sound:", "[@title:", "[@actionBar:",
                 "[@velocity:", "[@checkpoint]", "[@return]", "[@noFall:", "[@potion:",
                 "[@if ", "[@hand:", "[@bypassPerm:", "[@perm:", "[@amount:", "[@globalAmount:",
-                "[@cancelEvent:true]", "[@cancelEvent:false]"
+                "[@cancelEvent:true]", "[@cancelEvent:false]", "[@say ", "[@execute:", "[@invalid]",
+                "[@playerAmount:", "[@permAdd:", "[@permRemove:"
             )
 
             if (VaultManager.isHooked) {
