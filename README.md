@@ -1,7 +1,7 @@
 # ScriptBlockNext
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
-[![Kotlin](https://img.shields.io/badge/Kotlin-2.3.20--Beta2-purple.svg)](https://kotlinlang.org)
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.4.21-purple.svg)](https://kotlinlang.org)
 [![Paper](https://img.shields.io/badge/API-Paper%201.13.2-black.svg)](https://papermc.io/)
 
 **ScriptBlockNext** は、従来の ScriptBlockPlus の主要機能を再現しつつ、さらなる軽量化を実現した Minecraft サーバー用プラグインです。
@@ -34,3 +34,13 @@ ScriptBlockNext は、以下のプラグインとの連携をサポートして�
 ## 📄 ライセンス
 
 このプロジェクトは [GNU General Public License v3.0](LICENSE) のもとで公開されています。
+
+## 🛠 コマンド登録の書き方
+
+`[ ]` で囲んだ単位が1行のスクリプトになります。`[` `]` はネスト可能で、対にならない場合は `\[` `\]` と書けます。
+
+```
+/sbn interact create [@cooldown:10] [@if %player_level% >= 5 レベル不足(%value1%)] [@command spawn] [@msg &aようこそ]
+```
+
+`&`, `<`, `>` などの記号はそのまま入力できます(JSON は UTF-8 / HTML エスケープなしで保存)。従来の `\b` `\c` `\o` `\s` などのエスケープも利用可能です。
