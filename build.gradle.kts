@@ -30,7 +30,7 @@ dependencies {
     compileOnly("com.github.MilkBowl:VaultAPI:1.7")
     compileOnly("me.clip:placeholderapi:2.12.2")
     compileOnly("net.luckperms:api:5.4")
-    compileOnly("com.discordsrv:discordsrv:1.29.0")
+    compileOnly("com.discordsrv:discordsrv:1.30.5")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 }
 val targetJavaVersion = 8
