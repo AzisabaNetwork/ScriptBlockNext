@@ -29,7 +29,7 @@ dependencies {
     compileOnly("com.destroystokyo.paper:paper-api:1.13.2-R0.1-SNAPSHOT")
     compileOnly("com.github.MilkBowl:VaultAPI:1.7")
     compileOnly("me.clip:placeholderapi:2.12.2")
-    compileOnly("net.luckperms:api:5.4")
+    compileOnly("net.luckperms:api:5.5")
     compileOnly("com.discordsrv:discordsrv:1.29.0")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 }
